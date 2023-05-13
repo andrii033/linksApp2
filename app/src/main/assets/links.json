@@ -1,0 +1,56 @@
+{
+  "categories": [
+    {
+      "name": "Категория 1",
+      "links": [
+        {
+          "title": "google",
+          "url": "google.com"
+        },
+        {
+          "title": "gmail",
+          "url": "gmail.com"
+        }
+      ]
+    },
+    {
+      "name": "Категория 2",
+      "links": [
+        {
+          "title": "youtube",
+          "url": "youtube.com"
+        },
+        {
+          "title": "Ссылка-4",
+          "url": "https://link4.com"
+        }
+      ]
+    },
+    {
+      "name": "Категория 2",
+      "links": [
+        {
+          "title": "youtube",
+          "url": "youtube.com"
+        },
+        {
+          "title": "Ссылка-4",
+          "url": "https://link4.com"
+        }
+      ]
+    },
+    {
+      "name": "Категория 2",
+      "links": [
+        {
+          "title": "youtube",
+          "url": "youtube.com"
+        },
+        {
+          "title": "Ссылка-4",
+          "url": "https://link4.com"
+        }
+      ]
+    }
+  ]
+}
