@@ -1,0 +1,16 @@
+<resources>
+    <!-- Стиль для меню -->
+    <style name="MenuStyle" parent="Widget.MaterialComponents.PopupMenu">
+        <item name="android:itemTextAppearance">@style/MenuItemStyle</item>
+        <item name="android:textSize">14sp</item> <!-- Размер шрифта пунктов меню -->
+        <item name="android:paddingTop">8dp</item> <!-- Верхний отступ -->
+        <item name="android:paddingBottom">8dp</item> <!-- Нижний отступ -->
+    </style>
+
+    <!-- Стиль для пунктов меню -->
+    <style name="MenuItemStyle" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="android:textSize">14sp</item> <!-- Размер шрифта пунктов меню -->
+        <item name="android:paddingTop">8dp</item> <!-- Верхний отступ -->
+        <item name="android:paddingBottom">8dp</item> <!-- Нижний отступ -->
+    </style>
+</resources>
