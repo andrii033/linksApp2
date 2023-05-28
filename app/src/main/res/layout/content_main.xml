@@ -7,7 +7,7 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:showIn="@layout/app_bar_main">
 
-    <WebView xmlns:android="http://schemas.android.com/apk/res/android"
+    <WebView
         android:id="@+id/webView"
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -16,6 +16,8 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:layout_editor_absoluteX="1dp"
-        tools:layout_editor_absoluteY="1dp" />
+        tools:layout_editor_absoluteY="1dp" >
+
+    </WebView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

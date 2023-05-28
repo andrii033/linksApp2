@@ -6,15 +6,22 @@ import android.content.Context;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Parcelable;
+import android.os.PersistableBundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.Menu;
+import android.view.View;
+import android.webkit.WebBackForwardList;
+import android.webkit.WebHistoryItem;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.appcompat.app.AppCompatActivity;
 import com.TA.links.databinding.ActivityMainBinding;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.api.client.http.GenericUrl;
 import com.google.api.client.http.HttpResponse;
 import com.google.api.client.http.HttpTransport;
@@ -33,9 +40,11 @@ import java.io.OutputStream;
 public class MainActivity extends AppCompatActivity {
 
     private WebView webView;
-
+    private static final String WEBVIEW_STATE_KEY = "webview_state_key";
     private static final int REQUEST_WRITE_STORAGE = 1;
     String fileUrl = "https://drive.google.com/uc?export=download&id=1E4JAx8G3AbcbCdTy77oitn6gVMotPr_c";
+    private Bundle webViewState;
+    static String currentUrl="";
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -46,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         setSupportActionBar(binding.appBarMain.toolbar);
+
 
         ActivityCompat.requestPermissions(
                 this,
@@ -61,12 +71,12 @@ public class MainActivity extends AppCompatActivity {
 
         // Assuming the file is downloaded and saved at "/data/data/com.TA.links/files/index.html"
         File file = new File(getFilesDir(), "index.html");
-        Log.d("mytag", "File path: "+file.getAbsolutePath());
-        Log.d("mytag", "File dir: "+getFilesDir());
+        //Log.d("mytag", "File path: "+file.getAbsolutePath());
+        //Log.d("mytag", "File dir: "+getFilesDir());
 
         StringBuilder content = new StringBuilder();
 
-        Log.d("mytag", "File: "+file);
+        //Log.d("mytag", "File: "+file);
 
         try {
             FileInputStream fis = new FileInputStream(file);
@@ -86,16 +96,52 @@ public class MainActivity extends AppCompatActivity {
         }
 
         String fileContent = content.toString();
-        Log.d("mytag", "File content: "+fileContent);
+        //Log.d("mytag", "File content: "+fileContent);
 
         webView = findViewById(R.id.webView);
-        webView.setWebViewClient(new WebViewClient());
+        //webView.setWebViewClient(new WebViewClient());
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                String url = request.getUrl().toString();
+                currentUrl=url;
+                Log.d("mytag", "shouldOverrideUrlLoading: "+currentUrl);
+                return false;
+            }
+        });
         webView.getSettings().setJavaScriptEnabled(true); // enable javascript
         webView.setBackgroundColor(Color.TRANSPARENT);
 
-        webView.loadDataWithBaseURL(null, fileContent, "text/html", "UTF-8", null);
+        if(currentUrl.equals("")) {
+            webView.loadDataWithBaseURL(null, fileContent, "text/html", "UTF-8", null);
+            Log.d("mytag", "loadDataWithBaseURL");
+        }
+        else {
+            webView.loadUrl(currentUrl);
+            Log.d("mytag", "loadUrl");
+        }
+
+        binding.appBarMain.fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                webView.loadDataWithBaseURL(null, fileContent, "text/html", "UTF-8", null);
+            }
+        });
+
 
     }//onCreate
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState, @NonNull PersistableBundle outPersistentState) {
+        super.onSaveInstanceState(outState);
+
+    }
+
+    @Override
+    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        webView.loadUrl(currentUrl);
+    }
 
     @Override
     public void onBackPressed() {
@@ -138,7 +184,7 @@ public class MainActivity extends AppCompatActivity {
         try (OutputStream outputStream = new FileOutputStream(file)) {
             IOUtils.copy(response.getContent(), outputStream);
         }
-        Log.d("mytag", "File downloaded: " + file.getAbsolutePath());
+        //Log.d("mytag", "File downloaded: " + file.getAbsolutePath());
     }
 
 
