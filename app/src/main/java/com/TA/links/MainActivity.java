@@ -2,10 +2,8 @@ package com.TA.links;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.DownloadManager;
 import android.content.Context;
 import android.graphics.Color;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -15,8 +13,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
-import androidx.navigation.ui.AppBarConfiguration;
-import androidx.appcompat.app.AppCompatActivity;;
+import androidx.appcompat.app.AppCompatActivity;
 import com.TA.links.databinding.ActivityMainBinding;
 import com.google.api.client.http.GenericUrl;
 import com.google.api.client.http.HttpResponse;
@@ -35,8 +32,6 @@ import java.io.OutputStream;
 
 public class MainActivity extends AppCompatActivity {
 
-    private AppBarConfiguration mAppBarConfiguration;
-    private ActivityMainBinding binding;
     private WebView webView;
 
     private static final int REQUEST_WRITE_STORAGE = 1;
@@ -46,13 +41,20 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        //private AppBarConfiguration mAppBarConfiguration;
+        com.TA.links.databinding.ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
         setSupportActionBar(binding.appBarMain.toolbar);
 
-        ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                1);
+        ActivityCompat.requestPermissions(
+                this,
+                new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                REQUEST_WRITE_STORAGE
+        );
+
+//        ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+//                1);
 
         // Start the download task
         new DownloadFileTask().execute(fileUrl);
@@ -64,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
 
         StringBuilder content = new StringBuilder();
 
-        Log.d("mytag", "File: "+file.toString());
+        Log.d("mytag", "File: "+file);
 
         try {
             FileInputStream fis = new FileInputStream(file);
