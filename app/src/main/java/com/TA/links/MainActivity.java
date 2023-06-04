@@ -8,7 +8,6 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.PersistableBundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.Menu;
@@ -37,13 +36,8 @@ import java.io.OutputStream;
 public class MainActivity extends AppCompatActivity {
 
     private WebView webView;
-    private static final String WEBVIEW_STATE_KEY = "webview_state_key";
     private static final int REQUEST_WRITE_STORAGE = 1;
-    //String fileUrl = "https://drive.google.com/uc?export=download&id=1E4JAx8G3AbcbCdTy77oitn6gVMotPr_c";
-    String fileUrl="";
-
-    private Bundle webViewState;
-    static String currentUrl="";
+    String fileUrl = "";
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -91,20 +85,23 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 String url = request.getUrl().toString();
-                currentUrl=url;
-                Log.d("mytag", "shouldOverrideUrlLoading: "+currentUrl);
+                Log.d("mytag", "shouldOverrideUrlLoading: " + url);
                 return false;
             }
         });
         webView.getSettings().setJavaScriptEnabled(true);
         webView.setBackgroundColor(Color.TRANSPARENT);
 
-        if (file.exists()) {
-            webView.loadDataWithBaseURL(null, fileContent, "text/html", "UTF-8", null);
-            Log.d("mytag", "loadDataWithBaseURL");
+        if (savedInstanceState != null) {
+            webView.restoreState(savedInstanceState);
         } else {
-            webView.loadUrl("about:blank");
-            Log.d("mytag", "File does not exist: " + file.getAbsolutePath());
+            if (file.exists()) {
+                webView.loadDataWithBaseURL(null, fileContent, "text/html", "UTF-8", null);
+                Log.d("mytag", "loadDataWithBaseURL");
+            } else {
+                webView.loadUrl("about:blank");
+                Log.d("mytag", "File does not exist: " + file.getAbsolutePath());
+            }
         }
 
         binding.appBarMain.fab.setOnClickListener(new View.OnClickListener() {
@@ -120,14 +117,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onSaveInstanceState(@NonNull Bundle outState, @NonNull PersistableBundle outPersistentState) {
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-    }
-
-    @Override
-    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        webView.loadUrl(currentUrl);
+        webView.saveState(outState);
+        Log.d("mytag", "onSaveInstanceState");
     }
 
     @Override
@@ -156,9 +149,33 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(Void result) {
-            // File download completed, you can proceed with further operations
+            File file = new File(getFilesDir(), "index.html");
+            StringBuilder content = new StringBuilder();
+
+            try {
+                FileInputStream fis = new FileInputStream(file);
+                InputStreamReader isr = new InputStreamReader(fis);
+                BufferedReader br = new BufferedReader(isr);
+
+                String line;
+                while ((line = br.readLine()) != null) {
+                    content.append(line);
+                }
+
+                br.close();
+                isr.close();
+                fis.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            String fileContent = content.toString();
+
+            webView.loadDataWithBaseURL(null, fileContent, "text/html", "UTF-8", null);
+            Log.d("mytag", "File loaded into WebView");
         }
     }
+
 
     public static void downloadFile(Context context, String fileUrl) throws IOException {
         if (fileUrl == null || fileUrl.isEmpty()) {
