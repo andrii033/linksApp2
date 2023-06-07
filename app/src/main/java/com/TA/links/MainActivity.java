@@ -4,6 +4,7 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -15,10 +16,15 @@ import android.view.View;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+
 import com.TA.links.databinding.ActivityMainBinding;
+import com.google.android.material.navigation.NavigationView;
 import com.google.api.client.http.GenericUrl;
 import com.google.api.client.http.HttpResponse;
 import com.google.api.client.http.HttpTransport;
@@ -35,9 +41,12 @@ import java.io.OutputStream;
 
 public class MainActivity extends AppCompatActivity {
 
-    private WebView webView;
+    private WebView webView, navWebView;
     private static final int REQUEST_WRITE_STORAGE = 1;
+    private boolean isNavViewOpen = false;
     String fileUrl = "";
+    public static boolean isFirstStart = true;
+
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -45,6 +54,20 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         com.TA.links.databinding.ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
+        navWebView = findViewById(R.id.nav_webview);
+
+
+        drawerLayout.addDrawerListener(new DrawerLayout.SimpleDrawerListener() {
+            @Override
+            public void onDrawerSlide(View drawerView, float slideOffset) {
+                // Обновляем состояние переменной-флага при каждом событии перетаскивания
+                isNavViewOpen = slideOffset > 0;
+            }
+        });
+
 
         setSupportActionBar(binding.appBarMain.toolbar);
 
@@ -56,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
 
         loadUrl();
 
-        new DownloadFileTask().execute(fileUrl);
+
 
         File file = new File(getFilesDir(), "index.html");
         StringBuilder content = new StringBuilder();
@@ -85,8 +108,38 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 String url = request.getUrl().toString();
-                Log.d("mytag", "shouldOverrideUrlLoading: " + url);
+                //hide navigation view
+                drawerLayout.closeDrawer(GravityCompat.START);
                 return false;
+            }
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                String name = null, password = null;
+                try {
+                    String data = "";
+                    FileInputStream fis = openFileInput("setting.txt");
+                    InputStreamReader isr = new InputStreamReader(fis);
+                    BufferedReader br = new BufferedReader(isr);
+                    String line;
+                    int i=0;
+                    while ((line = br.readLine()) != null) {
+                        if(i==0){
+                            name=line;
+                        }
+                        if(i==1){
+                        }
+                        if(i==2){
+                            password=line;
+                        }
+                        i++;
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                // Выполнение JavaScript-кода для автозаполнения полей формы
+                String javascriptCode = "javascript:document.getElementById('username').value = '" + name + "';" +
+                        "document.getElementById('password').value = '" + password + "';";
+                view.evaluateJavascript(javascriptCode, null);
             }
         });
         webView.getSettings().setJavaScriptEnabled(true);
@@ -94,26 +147,45 @@ public class MainActivity extends AppCompatActivity {
 
         if (savedInstanceState != null) {
             webView.restoreState(savedInstanceState);
+            Log.d("mytag", "WebView state restored");
         } else {
-            if (file.exists()) {
-                webView.loadDataWithBaseURL(null, fileContent, "text/html", "UTF-8", null);
-                Log.d("mytag", "loadDataWithBaseURL");
-            } else {
-                webView.loadUrl("about:blank");
-                Log.d("mytag", "File does not exist: " + file.getAbsolutePath());
-            }
+//            if (file.exists()) {
+//                webView.loadDataWithBaseURL(null, fileContent, "text/html", "UTF-8", null);
+//                Log.d("mytag", "loadDataWithBaseURL");
+//            } else {
+//                webView.loadUrl("about:blank");
+//                Log.d("mytag", "File does not exist: " + file.getAbsolutePath());
+//            }
         }
 
-        binding.appBarMain.fab.setOnClickListener(new View.OnClickListener() {
+        // Настройка WebView для NavigationView
+        navWebView.setWebViewClient(new WebViewClient() {
             @Override
-            public void onClick(View view) {
-                if (file.exists()) {
-                    webView.loadDataWithBaseURL(null, fileContent, "text/html", "UTF-8", null);
-                } else {
-                    Log.d("mytag", "File does not exist: " + file.getAbsolutePath());
-                }
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                String url = request.getUrl().toString();
+                webView.loadUrl(url);
+                return true;
             }
         });
+        navWebView.getSettings().setJavaScriptEnabled(true);
+        navWebView.setBackgroundColor(Color.TRANSPARENT);
+
+// Загрузка содержимого файла index.html в WebView
+        if (file.exists()) {
+            navWebView.loadDataWithBaseURL(null, fileContent, "text/html", "UTF-8", null);
+            Log.d("mytag", "File loaded into NavigationView WebView");
+        } else {
+            navWebView.loadUrl("about:blank");
+            Log.d("mytag", "File does not exist: " + file.getAbsolutePath());
+        }
+
+        if(isFirstStart){
+            new DownloadFileTask().execute(fileUrl);
+            drawerLayout.openDrawer(GravityCompat.START);
+            //webView.loadDataWithBaseURL(null, fileContent, "text/html", "UTF-8", null);
+            isFirstStart=false;
+        }
+
     }
 
     @Override
@@ -137,10 +209,13 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected Void doInBackground(String... urls) {
             String fileUrl = urls[0];
+            Log.d("mytag", "File URL: " + fileUrl);
 
             try {
                 downloadFile(MainActivity.this, fileUrl);
+                Log.d("mytag", "File downloaded");
             } catch (IOException e) {
+                Log.d("mytag", "File download error");
                 e.printStackTrace();
             }
 
@@ -170,8 +245,11 @@ public class MainActivity extends AppCompatActivity {
             }
 
             String fileContent = content.toString();
+            Log.d("mytag", "File content: " + fileContent);
 
-            webView.loadDataWithBaseURL(null, fileContent, "text/html", "UTF-8", null);
+            //webView.loadDataWithBaseURL(null, fileContent, "text/html", "UTF-8", null);
+            navWebView.loadDataWithBaseURL(null, fileContent, "text/html", "UTF-8", null);
+
             Log.d("mytag", "File loaded into WebView");
         }
     }
