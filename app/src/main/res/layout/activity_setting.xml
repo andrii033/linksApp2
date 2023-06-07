@@ -91,6 +91,43 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" >
 
+            <EditText
+                android:id="@+id/editAddUrl"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:inputType="text" />
+
+            <ImageButton
+                android:id="@+id/btnAddUrl"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@android:drawable/ic_input_add"
+                android:src="@drawable/ic_visibility_off" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <EditText
+                android:id="@+id/multilineUrl"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:gravity="start|top"
+                android:inputType="textMultiLine" />
+
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" >
+
             <Button
                 android:id="@+id/btnSave"
                 android:layout_width="wrap_content"

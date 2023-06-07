@@ -16,6 +16,7 @@ import android.view.View;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.ImageButton;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
@@ -38,6 +39,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -45,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_WRITE_STORAGE = 1;
     private boolean isNavViewOpen = false;
     String fileUrl = "";
+    ArrayList<String> urlsList = new ArrayList<String>();
     public static boolean isFirstStart = true;
 
 
@@ -63,7 +66,6 @@ public class MainActivity extends AppCompatActivity {
         drawerLayout.addDrawerListener(new DrawerLayout.SimpleDrawerListener() {
             @Override
             public void onDrawerSlide(View drawerView, float slideOffset) {
-                // Обновляем состояние переменной-флага при каждом событии перетаскивания
                 isNavViewOpen = slideOffset > 0;
             }
         });
@@ -78,7 +80,6 @@ public class MainActivity extends AppCompatActivity {
         );
 
         loadUrl();
-
 
 
         File file = new File(getFilesDir(), "index.html");
@@ -112,6 +113,7 @@ public class MainActivity extends AppCompatActivity {
                 drawerLayout.closeDrawer(GravityCompat.START);
                 return false;
             }
+
             @Override
             public void onPageFinished(WebView view, String url) {
                 String name = null, password = null;
@@ -121,27 +123,32 @@ public class MainActivity extends AppCompatActivity {
                     InputStreamReader isr = new InputStreamReader(fis);
                     BufferedReader br = new BufferedReader(isr);
                     String line;
-                    int i=0;
+                    int i = 0;
                     while ((line = br.readLine()) != null) {
-                        if(i==0){
-                            name=line;
+                        if (i == 0) {
+                            name = line;
                         }
-                        if(i==1){
+                        if (i == 1) {
                         }
-                        if(i==2){
-                            password=line;
+                        if (i == 2) {
+                            password = line;
                         }
                         i++;
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                // Выполнение JavaScript-кода для автозаполнения полей формы
-                String javascriptCode = "javascript:document.getElementById('username').value = '" + name + "';" +
-                        "document.getElementById('password').value = '" + password + "';";
-                view.evaluateJavascript(javascriptCode, null);
+                for (String x : urlsList) {
+                    if (webView.getUrl().equals(x)) {
+                        String javascriptCode = "javascript:document.getElementById('username').value = '" + name + "';" +
+                                "document.getElementById('password').value = '" + password + "';";
+                        view.evaluateJavascript(javascriptCode, null);
+                    }
+                }
+
             }
         });
+
         webView.getSettings().setJavaScriptEnabled(true);
         webView.setBackgroundColor(Color.TRANSPARENT);
 
@@ -149,16 +156,10 @@ public class MainActivity extends AppCompatActivity {
             webView.restoreState(savedInstanceState);
             Log.d("mytag", "WebView state restored");
         } else {
-//            if (file.exists()) {
-//                webView.loadDataWithBaseURL(null, fileContent, "text/html", "UTF-8", null);
-//                Log.d("mytag", "loadDataWithBaseURL");
-//            } else {
-//                webView.loadUrl("about:blank");
-//                Log.d("mytag", "File does not exist: " + file.getAbsolutePath());
-//            }
+
         }
 
-        // Настройка WebView для NavigationView
+
         navWebView.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
@@ -170,7 +171,7 @@ public class MainActivity extends AppCompatActivity {
         navWebView.getSettings().setJavaScriptEnabled(true);
         navWebView.setBackgroundColor(Color.TRANSPARENT);
 
-// Загрузка содержимого файла index.html в WebView
+        //load navigation view
         if (file.exists()) {
             navWebView.loadDataWithBaseURL(null, fileContent, "text/html", "UTF-8", null);
             Log.d("mytag", "File loaded into NavigationView WebView");
@@ -179,11 +180,21 @@ public class MainActivity extends AppCompatActivity {
             Log.d("mytag", "File does not exist: " + file.getAbsolutePath());
         }
 
-        if(isFirstStart){
+        ImageButton imageButton = findViewById(R.id.menuButton);
+        imageButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                drawerLayout.openDrawer(GravityCompat.START);
+            }
+        });
+
+
+        if (isFirstStart) {
             new DownloadFileTask().execute(fileUrl);
             drawerLayout.openDrawer(GravityCompat.START);
             //webView.loadDataWithBaseURL(null, fileContent, "text/html", "UTF-8", null);
-            isFirstStart=false;
+            //webView.loadUrl("file:///android_asset/index.html");
+            isFirstStart = false;
         }
 
     }
@@ -301,6 +312,9 @@ public class MainActivity extends AppCompatActivity {
             while ((line = br.readLine()) != null) {
                 if (i == 1) {
                     fileUrl = line;
+                }
+                if (i >= 3) {
+                    urlsList.add(line);
                 }
                 i++;
             }
