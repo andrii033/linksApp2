@@ -24,12 +24,13 @@
 
                 <ImageButton
                     android:id="@+id/menuButton"
-                    android:layout_width="wrap_content"
+                    android:layout_width="40dp"
                     android:layout_height="wrap_content"
                     android:layout_alignParentStart="true"
                     android:layout_centerVertical="true"
-                    android:src="@android:drawable/ic_menu_sort_by_size"
-                    android:background="#FF6200EE"/>
+                    android:layout_marginEnd="16dp"
+                    android:background="#FF6200EE"
+                    android:src="@mipmap/ic_menu_foreground" />
 
                 <TextView
                     android:id="@+id/titleTextView"

@@ -40,6 +40,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -49,6 +51,16 @@ public class MainActivity extends AppCompatActivity {
     String fileUrl = "";
     ArrayList<String> urlsList = new ArrayList<String>();
     public static boolean isFirstStart = true;
+
+    private Map<String,String> map = new HashMap<>();
+    String startString = "To use this program, follow these steps:\n" +
+            "\n" +
+            "    Set up the project:\n" +
+            "        Create a new Android project in your preferred development environment (e.g., Android Studio).\n" +
+            "        Replace the contents of the MainActivity.java file with the provided code.\n" +
+            "        Make sure to add the necessary permissions in your AndroidManifest.xml file. In this case, the code requests the WRITE_EXTERNAL_STORAGE permission.\n" +
+            "        Replace the layout XML file (activity_main.xml) with your desired layout or modify it to match your needs.\n" +
+            "        If required, create additional layout XML files for the navigation drawer and other UI elements.";
 
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -81,6 +93,10 @@ public class MainActivity extends AppCompatActivity {
 
         loadUrl();
 
+        map.put("http://192.168.0.121/index.html","192.168.0.121" );
+        map.put("http://192.168.1.156/index.html","192.168.1.156" );
+        map.put("https://www.google.com/","google");
+
 
         File file = new File(getFilesDir(), "index.html");
         StringBuilder content = new StringBuilder();
@@ -109,8 +125,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 String url = request.getUrl().toString();
+                webView.loadUrl(url);
                 //hide navigation view
-                drawerLayout.closeDrawer(GravityCompat.START);
+                //drawerLayout.closeDrawer(GravityCompat.START);
                 return false;
             }
 
@@ -126,9 +143,10 @@ public class MainActivity extends AppCompatActivity {
                     int i = 0;
                     while ((line = br.readLine()) != null) {
                         if (i == 0) {
-                            name = line;
+
                         }
                         if (i == 1) {
+                            name = line;
                         }
                         if (i == 2) {
                             password = line;
@@ -164,7 +182,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 String url = request.getUrl().toString();
+
                 webView.loadUrl(url);
+                drawerLayout.closeDrawer(GravityCompat.START);
                 return true;
             }
         });
@@ -192,8 +212,10 @@ public class MainActivity extends AppCompatActivity {
         if (isFirstStart) {
             new DownloadFileTask().execute(fileUrl);
             drawerLayout.openDrawer(GravityCompat.START);
+
             //webView.loadDataWithBaseURL(null, fileContent, "text/html", "UTF-8", null);
             //webView.loadUrl("file:///android_asset/index.html");
+            webView.loadData(startString, "text/html", "UTF-8");
             isFirstStart = false;
         }
 
@@ -259,7 +281,30 @@ public class MainActivity extends AppCompatActivity {
             Log.d("mytag", "File content: " + fileContent);
 
             //webView.loadDataWithBaseURL(null, fileContent, "text/html", "UTF-8", null);
-            navWebView.loadDataWithBaseURL(null, fileContent, "text/html", "UTF-8", null);
+            //navWebView.loadDataWithBaseURL(null, fileContent, "text/html", "UTF-8", null);
+            if (file.exists()) {
+                navWebView.loadDataWithBaseURL(null, fileContent, "text/html", "UTF-8", null);
+            } else {
+                StringBuilder urlsContent = new StringBuilder();
+                urlsContent.append("<br>");
+                for (Map.Entry<String, String> entry : map.entrySet()) {
+                    String url = entry.getKey();
+                    String name = entry.getValue();
+
+                    urlsContent.append("<a href=\"" + url + "\">" + name + "</a><br><br>");
+                    Log.d("mytag", "urlsContent: " + urlsContent);
+                }
+
+
+                String urlsHtmlContent = urlsContent.toString();
+
+                if (!urlsHtmlContent.isEmpty()) {
+                    navWebView.loadDataWithBaseURL(null, urlsHtmlContent, "text/html", "UTF-8", null);
+                } else {
+                    navWebView.loadUrl("about:blank");
+                }
+            }
+
 
             Log.d("mytag", "File loaded into WebView");
         }
@@ -310,11 +355,8 @@ public class MainActivity extends AppCompatActivity {
             String line;
             int i = 0;
             while ((line = br.readLine()) != null) {
-                if (i == 1) {
+                if (i == 0) {
                     fileUrl = line;
-                }
-                if (i >= 3) {
-                    urlsList.add(line);
                 }
                 i++;
             }

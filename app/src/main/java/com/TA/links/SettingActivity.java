@@ -35,10 +35,7 @@ public class SettingActivity extends AppCompatActivity implements View.OnClickLi
         showPasswordButton.setOnClickListener(this);
         saveButton = findViewById(R.id.btnSave);
         saveButton.setOnClickListener(this);
-        btnAddUrl = findViewById(R.id.btnAddUrl);
-        btnAddUrl.setOnClickListener(this);
         multiLineAddUrl = (EditText) findViewById(R.id.multilineUrl);
-        editAddUrl = findViewById(R.id.editAddUrl);
 
 
         //load from file
@@ -51,10 +48,10 @@ public class SettingActivity extends AppCompatActivity implements View.OnClickLi
             int i=0;
             while ((line = br.readLine()) != null) {
                 if(i==0){
-                    editTextName.setText(line);
+                    editTextAddress.setText(line);
                 }
                 if(i==1){
-                    editTextAddress.setText(line);
+                    editTextName.setText(line);
                 }
                 if(i==2){
                     editTextPassword.setText(line);
@@ -88,9 +85,9 @@ public class SettingActivity extends AppCompatActivity implements View.OnClickLi
                 //save to file
                 try {
                     OutputStream outputStream = openFileOutput("setting.txt", Context.MODE_PRIVATE);
-                    outputStream.write(name.getBytes());
-                    outputStream.write("\n".getBytes());
                     outputStream.write(address.getBytes());
+                    outputStream.write("\n".getBytes());
+                    outputStream.write(name.getBytes());
                     outputStream.write("\n".getBytes());
                     outputStream.write(password.getBytes());
                     outputStream.write("\n".getBytes());
@@ -100,13 +97,6 @@ public class SettingActivity extends AppCompatActivity implements View.OnClickLi
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-            }
-        }
-        if(view.getId()==R.id.btnAddUrl){
-            String url = editAddUrl.getText().toString();
-            if(url.length()>0){
-                multiLineAddUrl.append(url+"\n");
-                editAddUrl.setText("");
             }
         }
 
